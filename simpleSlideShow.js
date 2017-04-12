@@ -1,34 +1,71 @@
 "use strict";
 
-(function($) {		
+(function($) {
+	var settings = {
+		duration: 400,
+		slides:   null,
+		left:     null,
+		right:    null,
+		pause:    true,
+		loop:     false
+	};
 
-	$.fn.simpleSlideShow = function(settings) {		
+	var currentSlide = 0,
+	    offset		 = 0,
+        slides       = null,
+        leftButton   = null,
+        rightButton  = null,
+        timer        = null,
+        delay        = settings.duration + 100;
 
-		var settings = $.extend({
-			duration: 400,
-			slides:   null,
-			left:     null,
-			right:    null,
-			pause:    true,
-			loop:     false
-		}, settings);
+	var methods = {
 
-
-		var $this        = this,
-		    currentSlide = 0,
-		    offset		 = 0,
-	        slides       = $(settings.slides),
-	        leftButton   = $(settings.left),
-	        rightButton  = $(settings.right),
-	        timer        = null,
-	        delay        = settings.duration + 100;
-
-	    settings.loop = (settings.loop && typeof settings.loop === 'object') ? 
-	    				settings.loop : {period: 15000};
+		init: function(params) {
+			settings = $.extend(settings, params);						
+			methods._checksettings();
+			
+			slides        = $(settings.slides);
+        	leftButton    = $(settings.left);
+        	rightButton   = $(settings.right);
 
 
-	    function checksettings() {
-	    	if (!settings.slides)
+        	//set up default period of changing slides
+        	if (	   settings.loop		!=  false    &&
+        		typeof settings.loop 		=== 'object' && 
+        		typeof settings.loop.period !== 'number') {
+        		settings.loop = {period: 15000};
+        	}
+
+        	if (settings.loop) {
+        		methods.run.apply(this);
+
+        		//reset timer after click on control button
+        		methods._onClickResetTimer.apply(this, [leftButton, rightButton]);        		
+        	}       	
+
+	    	methods._setUpSlides.apply(this);
+
+	    	rightButton.bind('click.slide', methods.left.bind(this));
+			leftButton.bind('click.slide', methods.right.bind(this));
+
+			$(window).bind('resize.reSetUpSlides', methods._setUpSlides.bind(this));
+
+	    	return this;
+		},
+		
+
+		_setUpSlides: function() {
+			offset = this.width();
+	    	slides.css({left: offset});
+	    	$(slides[currentSlide]).css({left: 0});	    	
+
+	    	var prev = (currentSlide == 0) ? slides.length - 1 : currentSlide - 1;
+
+			$(slides[prev]).css({left: -offset});
+		},
+
+		_checksettings: function() {
+			if (!settings.slides)
 	    		throw new Error('Selector for slides in slider is null');
 	    	if (!settings.left)
 	    		throw new Error('Selector for "left" control button is null');
@@ -36,50 +73,49 @@
 	    		throw new Error('Selector for "right" control button is null');
 	    	if (settings.loop && typeof settings.loop.period != 'number')
 	    		throw new Error('Loop period must be a number');	    	
-	    }
+		},
 
-		function init() {
-			checksettings();
-
-			offset = $this.width();
-			slides.css({left: offset});
-			$(slides[0]).css({left: 0});
-			$(slides[slides.length - 1]).css({left: -offset});
-
-			rightButton.bind('click', moveSlideToLeft);
-			leftButton.bind('click', moveSlideToRight);
-
-			if ((typeof settings.loop === 'object' 
-				 && typeof settings.loop.period === 'number')
-				 || settings.loop) {				
-				initLoop();
-			}
-					
-		}
-
-		function initLoop() {
+		//begin slide show
+		run: function() {
 			if (false == settings.pause) {
-				timer = setInterval(moveSlideToLeft, settings.loop.period);
-				return;
+				clearInterval(timer);
+				timer = setInterval(methods.left.bind(this), settings.loop.period);
+				return this;
 			}
 
-			$this
+			this
 				.mouseenter(function() {
-					if (timer) clearInterval(timer);						
+					clearInterval(timer);						
 				})
 				.mouseleave(function() {
-					timer = setInterval(moveSlideToLeft, settings.loop.period);
-				})
+					clearInterval(timer);
+					timer = setInterval(methods.left.bind(this), settings.loop.period);
+				}.bind(this))
 				.mouseleave();
-		}
 
-		function updateInterval() {
+			return this;
+		},
+
+		//stop slide show
+		stop: function() {
 			clearInterval(timer);
-			timer = setInterval(moveSlideToLeft, settings.loop.period);
-		}
+			return this;
+		},
 
-		function moveSlideToLeft() {
-			rightButton.unbind('click', moveSlideToLeft);
+		//reset timer after click on control element
+		_onClickResetTimer: function() {
+			var elems = Array.prototype.slice.call(arguments);
+			elems.forEach(function(item) {
+				item.bind('click.resetTimer', function() {
+					methods.stop.apply(this);
+					methods.run.apply(this);
+				}.bind(this));
+			}.bind(this));
+		},
+
+		//move slides from right to left
+		left: function() {
+			rightButton.unbind('.slide');
 
 			var rightSlide = (currentSlide === slides.length - 1) ? 
                 			0 : currentSlide + 1;
@@ -102,14 +138,15 @@
 			if (currentSlide === slides.length) currentSlide = 0;
 
 			setTimeout(function() {
-				rightButton.bind('click', moveSlideToLeft);
-			}, delay);
+				rightButton.bind('click.slide', methods.left.bind(this));
+			}.bind(this), delay);
 
-			updateInterval();
-		}
+			return this;
+		},
 
-		function moveSlideToRight() {
-			leftButton.unbind('click', moveSlideToRight);			
+		//move slides from left to right
+		right: function() {
+			leftButton.unbind('.slide');			
 
 			var leftSlide = (currentSlide === 0) ?
 			    			slides.length - 1 : currentSlide - 1;
@@ -132,35 +169,38 @@
 			if (currentSlide < 0) currentSlide = slides.length - 1;
 
 			setTimeout(function() {
-				leftButton.bind('click', moveSlideToRight);
-			}, delay);
+				leftButton.bind('click.slide', methods.right.bind(this));
+			}.bind(this), delay);
 
-			updateInterval();
+			return this;
 		}
-		
-		init();
+	};		
 
-		return this;
+	$.fn.sly = function(method) {
+
+		if (/^_/.test(method) && methods[method])
+			$.error('Can not access private method: "' + method + '.');
+		else if (methods[method])
+			return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+		else if (typeof method === 'object')
+			return methods.init.apply(this, arguments);
+		else
+			$.error('Method "' + method + '" doesn`t exist.');
+		
 	};
 
 })(jQuery);
 
 /*
+Usage
 
-Usage:
-
-$('#slider').simpleSlideShow({
+$('#slider').sly({
 	left: '#left',
 	right: '#right',
 	slides: '#slider .slide',
-	loop: true
+	loop: {
+		period: 3000
+	}
 })
 
 */
-
-$('#slider').simpleSlideShow({
-	left: '#left',
-	right: '#right',
-	slides: '#slider .slide',
-	loop: true
-})
