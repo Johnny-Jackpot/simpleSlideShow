@@ -2,73 +2,73 @@
 
 (function($) {
 
-	function Sly(params, slider) {
-		this.settings = {
-	    duration: 400,
-	    slides: null,
-	    left: null,
-	    right: null,
-	    pause: true,
-	    interval: null
-	  };
-	  this.currentSlide = 0;
-	  this.delay = this.settings.duration + 100;
-	  this.offset = 0;
-	  this.slider = slider;
-	  this.slides = null;
-	  this.leftButton = null;
-	  this.rightButton = null;
-	  this.timer = null;
+  function Sly(params, slider) {
+    this.settings = {
+      duration: 400,
+      slides: null,
+      left: null,
+      right: null,
+      pause: true,
+      interval: null
+    };
+    this.currentSlide = 0;
+    this.delay = this.settings.duration + 100;
+    this.offset = 0;
+    this.slider = slider;
+    this.slides = null;
+    this.leftButton = null;
+    this.rightButton = null;
+    this.timer = null;
 
-	  this._init(params);
-	}
+    this._init(params);
+  }
 
-	Sly.prototype._init = function(params) {		
-		this._setUpSettings(params)  
+  Sly.prototype._init = function(params) {    
+    this._setUpSettings(params)  
         ._selectElements()
         ._setUpSlides()
         ._setupControls()
         ._onResizeWindowUpdateSlides();
 
     if (this.settings.interval) this._setupLoop();
-	};
+  };
 
-	Sly.prototype._setupLoop = function() {
-		this.run();
-		this._onClickControlResetTimer();
+  Sly.prototype._setupLoop = function() {
+    this.run();
+    this._onClickControlResetTimer();
 
-		return this;
-	};
+    return this;
+  };
 
-	Sly.prototype._onResizeWindowUpdateSlides = function() {
-		$(window).bind('resize.reSetUpSlides', this._setUpSlides.bind(this));
+  Sly.prototype._onResizeWindowUpdateSlides = function() {
+    $(window).bind('resize.reSetUpSlides', this._setUpSlides.bind(this));
 
-		return this;
-	};	
+    return this;
+  };  
 
-	Sly.prototype._setUpSettings = function(params) {
-		this.settings = $.extend(this.settings, params);
+  Sly.prototype._setUpSettings = function(params) {
+    this.settings = $.extend(this.settings, params);
 
-		return this;	
-	};
+    return this;  
+  };
 
-	Sly.prototype._setupControls = function() {
-		this.rightButton.bind('click.slide', this.onClickRightControl.bind(this));
+  Sly.prototype._setupControls = function() {
+    this.rightButton.bind('click.slide', this.onClickRightControl.bind(this));
     this.leftButton.bind('click.slide', this.onClickLeftControl.bind(this));
 
     return this;
-	};
+  };
 
-	Sly.prototype._selectElements = function() {
-		this.slides = $(this.settings.slides);
+  Sly.prototype._selectElements = function() {
+    this.slides = $(this.settings.slides);
     this.leftButton = $(this.settings.left);
     this.rightButton = $(this.settings.right);
 
     return this;
-	};
+  };
   
   Sly.prototype._setUpSlides = function() {
-  	this.offset = this.slider.width();
+    this.offset = this.slider.width();
     this.slides.css({left: this.offset});
     $(this.slides[this.currentSlide]).css({left: 0});
     var prev = (this.currentSlide == 0) ? 
@@ -79,12 +79,12 @@
   };   
 
   Sly.prototype._setupPause = function() {
-  	this._onMouseEnterSlider()
-  	    ._onMouseLeaveSlider();  	
+    this._onMouseEnterSlider()
+        ._onMouseLeaveSlider();    
   };
 
   Sly.prototype._onMouseEnterSlider = function() {
-  	this.slider.mouseenter(function() {
+    this.slider.mouseenter(function() {
       clearInterval(this.timer);            
     }.bind(this));
 
@@ -92,7 +92,7 @@
   };
 
   Sly.prototype._onMouseLeaveSlider = function() {
-  	this.slider.mouseleave(function() {
+    this.slider.mouseleave(function() {
       clearInterval(this.timer);
       this.timer = setInterval(this.onClickRightControl.bind(this), this.settings.interval);
     }.bind(this));
@@ -101,7 +101,7 @@
   };
 
   Sly.prototype._onClickControlResetTimer = function() {
-  	[this.leftButton, this.rightButton].forEach(function(item) {
+    [this.leftButton, this.rightButton].forEach(function(item) {
       item.bind('click.resettimer', function() {        
         this.stop().run(); 
       }.bind(this));
@@ -109,7 +109,7 @@
   };
 
   Sly.prototype.run = function(interval) {
-  	if (interval) this.settings.interval = interval;
+    if (interval) this.settings.interval = interval;
     if (this.settings.pause) this._setupPause();
     clearInterval(this.timer);
     this.timer = setInterval(this.onClickRightControl.bind(this), this.settings.interval);
@@ -118,14 +118,14 @@
   };
 
   Sly.prototype.stop = function() {
-  	clearInterval(this.timer);
-  	return this;
+    clearInterval(this.timer);
+    return this;
   };
 
   Sly.prototype.onClickRightControl = function() {
-  	this.rightButton.unbind('.slide');
+    this.rightButton.unbind('.slide');
 
-  	var leftSlide = (this.currentSlide === 0) ?
+    var leftSlide = (this.currentSlide === 0) ?
         this.slides.length - 1 : this.currentSlide - 1;
     var rightSlide = (this.currentSlide === this.slides.length - 1) ? 
         0 : this.currentSlide + 1;    
@@ -147,7 +147,7 @@
   };
 
   Sly.prototype.onClickLeftControl = function() {
-  	this.leftButton.unbind('.slide');      
+    this.leftButton.unbind('.slide');      
 
     var leftSlide = (this.currentSlide === 0) ?
         this.slides.length - 1 : this.currentSlide - 1;
@@ -171,7 +171,7 @@
     }.bind(this), this.delay);
   };     
 
-  $.fn.sly = function(settings) {  	
+  $.fn.sly = function(settings) {    
     return new Sly(settings, this);
   };
 
