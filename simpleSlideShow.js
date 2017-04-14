@@ -19,7 +19,10 @@
       delay = settings.duration;
 
   var methods = {
-
+    /**
+     * @param {Object} params Same props as var settings above
+     * 
+     */
     init: function(params) {
       settings = $.extend(settings, params);            
       methods._checksettings();
