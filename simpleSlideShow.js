@@ -16,11 +16,22 @@
       leftButton = null,
       rightButton = null,
       timer = null,
-      delay = settings.duration;
+      delay = settings.duration,
+      DEFAULT_PERIOD = 15000;
 
   var methods = {
     /**
-     * @param {Object} params Same props as var settings above
+     * @param {Object} params 
+     * {
+     *   duration: {Number} Duration of slide animation
+     *   slides: {String} Css selector
+     *   left: {String} Css selector of control element
+     *   right: {String} Css selector of control element
+     *   pause: {Boolean} Pause slideshow on mouseenter
+     *   loop: {Boolean | Object} If "true" slides 
+     *     will change every DEFAULT_PERIOD ms 
+     *     if {period: 3000} - every 3000 ms    
+     * }
      * 
      */
     init: function(params) {
@@ -32,10 +43,10 @@
       rightButton = $(settings.right);
 
       //set up default period of changing slides
-      if (settings.loop    !=  false &&
-          typeof settings.loop     === 'object' && 
+      if (settings.loop != false &&
+          typeof settings.loop === 'object' && 
           typeof settings.loop.period !== 'number') {
-        settings.loop = {period: 15000};
+        settings.loop = {period: DEFAULT_PERIOD};
       }
 
       if (settings.loop) {
