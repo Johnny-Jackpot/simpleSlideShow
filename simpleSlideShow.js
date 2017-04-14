@@ -1,22 +1,22 @@
 "use strict";
 
 (function($) {
-	var settings = {
-		duration: 400,
-		slides:   null,
-		left:     null,
-		right:    null,
-		pause:    true,
-		loop:     false
-	};
+  var settings = {
+    duration: 400,
+    slides: null,
+    left: null,
+    right: null,
+    pause: true,
+    loop: false
+  };
 
 	var currentSlide = 0,
-	    offset		 = 0,
-        slides       = null,
-        leftButton   = null,
-        rightButton  = null,
-        timer        = null,
-        delay        = settings.duration + 100;
+    	offset = 0,
+    	slides = null,
+    	leftButton = null,
+    	rightButton = null,
+    	timer = null,
+    	delay = settings.duration;
 
 	var methods = {
 
@@ -24,55 +24,51 @@
 			settings = $.extend(settings, params);						
 			methods._checksettings();
 			
-			slides        = $(settings.slides);
-        	leftButton    = $(settings.left);
-        	rightButton   = $(settings.right);
+			slides = $(settings.slides);
+      leftButton = $(settings.left);
+      rightButton = $(settings.right);
 
+    	//set up default period of changing slides
+    	if (	   settings.loop		!=  false    &&
+    		typeof settings.loop 		=== 'object' && 
+    		typeof settings.loop.period !== 'number') {
+    		settings.loop = {period: 15000};
+    	}
 
-        	//set up default period of changing slides
-        	if (	   settings.loop		!=  false    &&
-        		typeof settings.loop 		=== 'object' && 
-        		typeof settings.loop.period !== 'number') {
-        		settings.loop = {period: 15000};
-        	}
+    	if (settings.loop) {
+    		methods.run.apply(this);
+    		//reset timer after click on control button
+    		methods._onClickResetTimer.apply(this, [leftButton, rightButton]);        		
+    	}       	
 
-        	if (settings.loop) {
-        		methods.run.apply(this);
+	    methods._setUpSlides.apply(this);
 
-        		//reset timer after click on control button
-        		methods._onClickResetTimer.apply(this, [leftButton, rightButton]);        		
-        	}       	
-
-	    	methods._setUpSlides.apply(this);
-
-	    	rightButton.bind('click.slide', methods.left.bind(this));
+	    rightButton.bind('click.slide', methods.left.bind(this));
 			leftButton.bind('click.slide', methods.right.bind(this));
 
 			$(window).bind('resize.reSetUpSlides', methods._setUpSlides.bind(this));
 
-	    	return this;
+	    return this;
 		},
 		
 
 		_setUpSlides: function() {
 			offset = this.width();
-	    	slides.css({left: offset});
-	    	$(slides[currentSlide]).css({left: 0});	    	
-
-	    	var prev = (currentSlide == 0) ? slides.length - 1 : currentSlide - 1;
-
+    	slides.css({left: offset});
+    	$(slides[currentSlide]).css({left: 0});
+	    var prev = (currentSlide == 0) ? slides.length - 1 : currentSlide - 1;
 			$(slides[prev]).css({left: -offset});
 		},
 
 		_checksettings: function() {
 			if (!settings.slides)
-	    		throw new Error('Selector for slides in slider is null');
-	    	if (!settings.left)
-	    		throw new Error('Selector for "left" control button is null');
-	    	if (!settings.right)
-	    		throw new Error('Selector for "right" control button is null');
-	    	if (settings.loop && typeof settings.loop.period != 'number')
-	    		throw new Error('Loop period must be a number');	    	
+    		throw new Error('Selector for slides in slider is null');
+    	if (!settings.left)
+    		throw new Error('Selector for "left" control button is null');
+    	if (!settings.right)
+    		throw new Error('Selector for "right" control button is null');
+    	if (settings.loop && typeof settings.loop.period != 'number')
+    		throw new Error('Loop period must be a number');	    	
 		},
 
 		//begin slide show
@@ -118,23 +114,19 @@
 			rightButton.unbind('.slide');
 
 			var rightSlide = (currentSlide === slides.length - 1) ? 
-                			0 : currentSlide + 1;
-
+      		0 : currentSlide + 1;
 			var leftSlide = (currentSlide === 0) ?
-			    			slides.length - 1 : currentSlide - 1;
+					slides.length - 1 : currentSlide - 1;
 
 			$(slides[leftSlide]).css({left: offset});
-
 			$(slides[currentSlide]).animate({
 				left: '-=' + offset + 'px'
 			}, settings.duration);
-
 			$(slides[rightSlide]).animate({
 			 	left: '-=' + offset + 'px'
 			}, settings.duration);
 
 			currentSlide++;
-
 			if (currentSlide === slides.length) currentSlide = 0;
 
 			setTimeout(function() {
@@ -149,23 +141,20 @@
 			leftButton.unbind('.slide');			
 
 			var leftSlide = (currentSlide === 0) ?
-			    			slides.length - 1 : currentSlide - 1;
-
+					slides.length - 1 : currentSlide - 1;
+			//pay attention that this is not right slide
 			var nextLeftSlide = (leftSlide === 0) ?
-							slides.length - 1 : leftSlide - 1;
+					slides.length - 1 : leftSlide - 1;
 
 			$(slides[nextLeftSlide]).css({left: -offset});
-
 			$(slides[currentSlide]).animate({
 				left: '+=' + offset + 'px'
 			}, settings.duration);
-
 			$(slides[leftSlide]).animate({
 			 	left: '+=' + offset + 'px'
 			}, settings.duration);
 
 			currentSlide--;
-
 			if (currentSlide < 0) currentSlide = slides.length - 1;
 
 			setTimeout(function() {
@@ -191,16 +180,16 @@
 
 })(jQuery);
 
-/*
-Usage
 
-$('#slider').sly({
+/*Usage*/
+
+/*var elem = $('#slider').sly({
 	left: '#left',
 	right: '#right',
 	slides: '#slider .slide',
 	loop: {
 		period: 3000
 	}
-})
+})*/
 
-*/
+
