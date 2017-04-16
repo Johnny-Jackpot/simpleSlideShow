@@ -108,6 +108,29 @@
     }.bind(this));
   };
 
+  /** 
+   * @param  {int} beforeLeftSlide Index of slide before leftSlide in array of slides
+   * @param  {int} leftSlide       Index of leftSlide in array of slides
+   * @param  {int} currentSlide    Index of currentSlide in array of slides
+   */
+  Sly.prototype._moveSlideToRight = function(beforeLeftSlide, leftSlide, currentSlide) {
+    $(this.slides[beforeLeftSlide]).css({left: -this.offset});
+    [this.slides[currentSlide], this.slides[leftSlide]].forEach(function(slide) {
+      $(slide).animate({
+        left: '+=' + this.offset + 'px'
+      }, this.settings.duration);
+    }.bind(this));    
+  };
+
+  Sly.prototype._moveSlideToLeft = function(leftSlide, currentSlide, rightSlide) {
+    $(this.slides[leftSlide]).css({left: this.offset});
+    [this.slides[currentSlide], this.slides[rightSlide]].forEach(function(slide) {
+      $(slide).animate({
+        left: '-=' + this.offset + 'px'
+      }, this.settings.duration);
+    }.bind(this));
+  };
+
   Sly.prototype.run = function(interval) {
     if (interval) this.settings.interval = interval;
     if (this.settings.pause) this._setupPause();
@@ -120,7 +143,7 @@
   Sly.prototype.stop = function() {
     clearInterval(this.timer);
     return this;
-  };
+  };  
 
   Sly.prototype.onClickRightControl = function() {
     this.rightButton.unbind('.slide');
@@ -130,13 +153,7 @@
     var rightSlide = (this.currentSlide === this.slides.length - 1) ? 
         0 : this.currentSlide + 1;    
 
-    $(this.slides[leftSlide]).css({left: this.offset});
-    $(this.slides[this.currentSlide]).animate({
-      left: '-=' + this.offset + 'px'
-    }, this.settings.duration);
-    $(this.slides[rightSlide]).animate({
-       left: '-=' + this.offset + 'px'
-    }, this.settings.duration);
+    this._moveSlideToLeft(leftSlide, this.currentSlide, rightSlide);
 
     this.currentSlide++;
     if (this.currentSlide === this.slides.length) this.currentSlide = 0;
@@ -144,7 +161,7 @@
     setTimeout(function() {
       this.rightButton.bind('click.slide', this.onClickRightControl.bind(this));
     }.bind(this), this.delay);
-  };
+  }; 
 
   Sly.prototype.onClickLeftControl = function() {
     this.leftButton.unbind('.slide');      
@@ -152,16 +169,10 @@
     var leftSlide = (this.currentSlide === 0) ?
         this.slides.length - 1 : this.currentSlide - 1;
     //pay attention that this is not right slide
-    var nextLeftSlide = (leftSlide === 0) ?
+    var beforeLeftSlide = (leftSlide === 0) ?
         this.slides.length - 1 : leftSlide - 1;
 
-    $(this.slides[nextLeftSlide]).css({left: -this.offset});
-    $(this.slides[this.currentSlide]).animate({
-      left: '+=' + this.offset + 'px'
-    }, this.settings.duration);
-    $(this.slides[leftSlide]).animate({
-       left: '+=' + this.offset + 'px'
-    }, this.settings.duration);
+    this._moveSlideToRight(beforeLeftSlide, leftSlide, this.currentSlide);
 
     this.currentSlide--;
     if (this.currentSlide < 0) this.currentSlide = this.slides.length - 1;
